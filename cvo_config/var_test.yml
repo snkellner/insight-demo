@@ -1,0 +1,54 @@
+netapp_hostname: "10.65.59.220"
+netapp_username: "admin"
+netapp_password: "netapp01"
+
+vservers:
+  - { name: svm_skellner_soka, aggr: aggr1_trinidad_02, protocol: 'nfs,cifs,fcp,iscsi,ndmp' }
+
+lifs:
+  - { name: "{{ vservers.0.name }}_data_lif", vserver: "{{ vservers.0.name }}", node: trinidad-02, port: e0c-192, protocol: nfs, address: 192.168.80.11, netmask: 255.255.0.0, fwpol: mgmt }
+
+fcp_lifs:
+  
+vserver_dns:
+  - { vserver: "{{ vservers.0.name }}", dns_domains: muccbc.hq.netapp.com, dns_nameservers: 10.65.56.5,10.65.56.6 }
+
+cifs:
+  # - { vserver: vserver, domain: "{{ item.domain }}", cifs_server_name: cifs_server_name, force: false, admin_password: "{{ vault_admin_password }}", admin_user_name: admin_user_name, ou: ou, service_state: started }
+
+cifs_share:
+  # - { name: name, vserver: vserver, share: share, user_or_group: user, permission: perm}
+nas:
+# - { vserver: vserver, name: name, aggr: aggr, size: size, percent_snapshot_space: 20, snapshot_policy: snapshot_policy, snapdir_access: false, atime_update: false, grow_threshold_percent: pct, maximum_size: max, read_realloc: '', space_mgmt_try_first: volume_grow, protocol: nfs, client: client, ro: ro, rw: rw, su: su,  }
+- { vserver: "{{ vservers.0.name }}", name: vol_skellner_nfs01, aggr: aggr1_trinidad_01, size: 10, percent_snapshot_space: 10, snapshot_policy: none, snapdir_access: false, atime_update: false, grow_threshold_percent: 95, maximum_size: 15, read_realloc: '', space_mgmt_try_first: volume_grow, protocol: nfs, client: nfsclient1, ro: sys, rw: sys, su: sys }
+- { vserver: "{{ vservers.0.name }}", name: vol_skellner_nfs02, aggr: aggr1_trinidad_02, size: 10, percent_snapshot_space: 10, snapshot_policy: none, snapdir_access: false, atime_update: false, grow_threshold_percent: 95, maximum_size: 15, read_realloc: '', space_mgmt_try_first: volume_grow, protocol: nfs, client: nfsclient1, ro: sys, rw: sys, su: sys }
+
+wwpns:
+- { wwpn: 20:00:00:25:b5:4a:20:2d, alias: alias1, vserver: "{{ vservers.0.name }}"}
+- { wwpn: 20:00:00:25:b5:4a:20:2e, alias: alias2, vserver: "{{ vservers.0.name }}"}
+
+igroups:
+  - { name: igroup1, vserver: "{{ vservers.0.name }}", group_type: fcp, ostype: linux, initiator: '20:00:00:25:b5:4a:20:2d,20:00:00:25:b5:4a:20:2e' }
+
+luns:
+- { vol_name: vol_skellner_san, vol_size: 20, lun_size: 10, name: lun01, ostype: linux, igroup: "{{ igroups.0.name }}", lunid: 0, space_reserve: false, space_alloc: true, aggr: "{{ vservers.0.aggr }}", vserver: "{{ vservers.0.name }}" }
+
+roles:
+  - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: DEFAULT, access_level: none}
+  - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: version, access_level: readonly}
+  # - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: "cluster identity show", access_level: all}
+  # - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: "cluster show", access_level: readonly}
+  # - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: "system node show", access_level: readonly}
+  - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: "network interface show", access_level: readonly}
+  # - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: "qos workload show", access_level: readonly}
+  - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: statistics, access_level: readonly}
+  - { state: present, name: ansible_role, vserver: svm_skellner_soka, directory: "lun show", access_level: readonly}
+
+na_users:
+  - { state: present, vserver: "{{ vservers.0.name }}", na_username: trident, password: Netapp123!, applications: 'ontapi,ssh', authmethod: password, role: vsadmin }
+
+na_users_publickey:
+  - { state: present, vserver: "{{ vservers.0.name }}", na_username: trident_ssh, index: 0, password: '', applications: ssh, authmethod: publickey, role: vsadmin, lock: False, key: "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDZMP7Zhp5tpNQk+GxuBujwbzIusXwZTbKQN6W8D9DZi3vJ5mmHWPgSbBEqapMji0kLo6RScwzXMvW21AS7RMTaKRatSZqhR2g2AG5HU3E9UlK6N0N9/MXr6zZQR0htNa3xO7qN2cx81Zysd4E3AuwrsbqGMzjHWwJxjTSvDcq2LjBHYuXPXUGHT3sVrXcceSPwRF4HYHbwHXLV0CBmcKTOjElYttBXvQvx9E56oTJlsTd3yzXFwxhgESYTtVhgWiN4uZoEsNtibjaywARlMyf00W4LxYcutZPGkNXPHYRTqyswpGWkeu2NhShI3nw/NdstB1/J1JzU+67OzDnsIrWmxxnmV46Qp942A1vgkSDlkVKRuUQHbQxwXV5fIzi05m62nFW/oqxzcaZ7ocT1WWb6PNeRLAqpnZ8Wxhi70m9b4j89LjGzHxCvEmMhsCk+YnZQEazFjA/bdi7Jdpc6LaNVAqO94NeAWOVt3Ae+Tx+XSrmsca9rHHwa7QKHiMOUPMs= root@5bd73163ff5f" }
+
+ls_mirrors:
+  - { ls_vserver: "{{ vservers.0.name }}", ls_aggr: aggr1_trinidad_01, ls_volume: "{{ vservers.0.name }}_lsm1", }

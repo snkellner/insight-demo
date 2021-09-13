@@ -1,0 +1,10 @@
+ansible-playbook int-fasc1_create-svm.yml --tags "collect_info" --extra-vars "@var_test.yml"
+ansible-playbook create_svm_test.yml --tags "collect_info" --extra-vars "variables=var_test.yml"
+ansible-playbook remove_svm_test.yml --tags "remove_svm"
+ansible-playbook -i inventory_netapp.yml get_ontap_info.yml --list-hosts
+ansible-playbook -i inventory_netapp.yml get_ontap_info.yml --list-tasks
+ansible-playbook -i inventory_netapp.yml test_inventory.yml --limit cbc
+ansible-playbook -i inventory_netapp.yml test_inventory.yml --tags "collect_info"
+ansible-playbook -i inventory_netapp.yml -l trinidad svm_from_inventory.yml
+ansible-playbook -i inventory_netapp.yml -l trinidad nas_volume_from_inventory.yml
+ansible-playbook -i inventory_netapp.yml -l trinidad nas_volume_delete_from_inventory.yml

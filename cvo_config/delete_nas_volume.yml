@@ -1,0 +1,71 @@
+################################################################################
+#
+# Title:        delete_nas_volume.yml 
+# Author:       Stefan Kellner
+# Date:         2020-07-10
+# Description:  Delete nfs volume and export policy
+#               with Ansible modules
+#
+# Modules:      na_ontap_volume
+#
+# URLs:         http://docs.netapp.com/ontap-9/index.jsp
+#               https://galaxy.ansible.com/netapp/ontap
+#
+# Examples:     ansible-playbook delete_nas_volume.yml --extra-vars "variables=var_test.yml"
+#               ansible-playbook delete_nas_volume.yml --extra-vars "variables=var_intfasc1.yml vault_variables=~/ansible/ontap-admin-pass.yml"
+#
+# Built-in help:
+# ansible-doc netapp.ontap.na_ontap_volume
+#
+################################################################################
+
+- hosts: localhost
+  gather_facts: false
+  vars:
+    input: &input
+      hostname:       "{{ netapp_hostname }}"
+      username:       "{{ netapp_username }}"
+      password:       "{{ netapp_password }}"
+      https:          true
+      validate_certs: false
+  vars_files:
+    - "{{ variables }}"
+    - "{{ vault_variables }}"
+    # Specify variable files with --extra-vars "variables=var_intfasc1.yml, vault_variables=~/ansible/ontap-admin-pass.yml"
+    # - var_intfasc1.yml
+    # - ~/ansible/ontap-admin-pass.yml
+  collections:
+    - netapp.ontap
+
+  tasks:
+
+  - name: Delete volume
+    na_ontap_volume:
+      state: absent
+      name: "{{ item.name }}"
+      aggregate_name: "{{ item.aggr }}"
+      vserver: "{{ item.vserver }}"
+      <<: *input
+    with_items:
+      "{{ nas }}"
+
+  - name: Delete Policy
+    na_ontap_export_policy:
+      state: absent
+      name: "{{ item.name }}"
+      vserver: "{{ item.vserver }}"
+      <<: *input
+    with_items:
+      "{{ nas }}"
+    when: item.protocol == "nfs"
+
+  # - name: Delete Share
+  #   na_ontap_cifs:
+  #     state: absent
+  #     share_name: "{{ item.share }}"
+  #     path: "/{{ item.name }}"
+  #     vserver: "{{ item.vserver }}"
+  #     <<: *input
+  #   with_items:
+  #     "{{ cifs_share }}"
+  #   when: cifs_share != None

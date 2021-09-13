@@ -1,0 +1,142 @@
+################################################################################
+#
+# Title:        create_nas_volume.yml 
+# Author:       Stefan Kellner
+# Date:         2020-07-10
+# Description:  Create a nfs volume
+#               with Ansible modules
+#
+# Modules:      na_ontap_volume
+#
+# URLs:         http://docs.netapp.com/ontap-9/index.jsp
+#               https://galaxy.ansible.com/netapp/ontap
+#
+# Examples:     ansible-playbook create_nas_volume.yml --extra-vars "variables=var_test.yml"
+#               ansible-playbook create_nas_volume.yml --extra-vars "variables=var_intfasc1.yml vault_variables=~/ansible/ontap-admin-pass.yml"
+#
+# Built-in help:
+# ansible-doc netapp.ontap.na_ontap_svm
+#
+################################################################################
+
+- hosts: localhost
+  gather_facts: false
+  vars:
+    input: &input
+      hostname:       "{{ netapp_hostname }}"
+      username:       "{{ netapp_username }}"
+      password:       "{{ netapp_password }}"
+      https:          true
+      validate_certs: false
+  vars_files:
+    - "{{ variables }}"
+    - "{{ vault_variables }}"
+    # Specify variable files with --extra-vars "variables=var_intfasc1.yml, vault_variables=~/ansible/ontap-admin-pass.yml"
+    # - var_intfasc1.yml
+    # - ~/ansible/ontap-admin-pass.yml
+  collections:
+    - netapp.ontap
+
+  tasks:
+
+    - name: Create Policy
+      na_ontap_export_policy:
+        state: present
+        name: "{{ item.name }}"
+        vserver: "{{ item.vserver }}"
+        <<: *input
+      with_items:
+        "{{ nas }}"
+      when: item.protocol == "nfs"
+
+    - name: Setup rules
+      na_ontap_export_policy_rule:
+        state: present
+        policy_name: "{{ item.name }}"
+        vserver: "{{ item.vserver }}"
+        client_match: "{{ item.client }}"
+        ro_rule: "{{ item.ro }}"
+        rw_rule: "{{ item.rw }}"
+        super_user_security: "{{ item.su }}"
+        allow_suid: true
+        protocol: "{{ item.protocol }}"
+        <<: *input
+      with_items:
+        "{{ nas }}"
+      when: item.protocol == "nfs"
+
+    - name: Create volume
+      na_ontap_volume:
+        state: present
+        name: "{{ item.name }}"
+        aggregate_name: "{{ item.aggr }}"
+        size: "{{ item.size }}"
+        size_unit: gb
+        policy: "{{ 'default' if item.protocol.lower() == 'cifs' else item.name }}"
+        junction_path: "/{{ item.name }}"
+        space_guarantee: "none"
+        percent_snapshot_space: "{{ item.percent_snapshot_space }}"
+        snapshot_policy: "{{ item.snapshot_policy }}"
+        snapdir_access: "{{ item.snapdir_access }}"
+        atime_update: "{{ item.atime_update }}"
+        vserver: "{{ item.vserver }}"
+        <<: *input
+      with_items:
+        "{{ nas }}"
+
+    - name: Set volume autosize
+      na_ontap_volume_autosize:
+        volume: "{{ item.name }}"
+        vserver: "{{ item.vserver }}"
+        mode: grow
+        grow_threshold_percent: "{{ item.grow_threshold_percent }}"
+        maximum_size: "{{ item.maximum_size }}g"
+        <<: *input
+      with_items:
+        "{{ nas }}"
+
+    - name: Set volume read_realloc
+      na_ontap_command:
+        command: ['volume', 'modify', '-vserver',"{{ item.vserver }}", '-volume',"{{ item.name }}", '-read-realloc',"{{ item.read_realloc }}"]
+        privilege: 'advanced'
+        return_dict: true
+        <<: *input
+      with_items:
+        "{{ nas }}"
+      when: item.read_realloc != None
+  
+    - name: Set volume space-mgmt-try-first
+      na_ontap_command:
+        command: ['volume', 'modify', '-vserver',"{{ item.vserver }}", '-volume',"{{ item.name }}", '-space-mgmt-try-first',"{{ item.space_mgmt_try_first }}"]
+        privilege: 'advanced'
+        return_dict: true
+        <<: *input
+      with_items:
+        "{{ nas }}"
+      when: item.space_mgmt_try_first != None
+  
+
+    - name: Create Share
+      na_ontap_cifs:
+        state: present
+        share_name: "{{ item.share }}"
+        path: "/{{ item.name }}"
+        vserver: "{{ item.vserver }}"
+        <<: *input
+      with_items:
+        "{{ cifs_share }}"
+      when: cifs_share != None
+
+    - name: Modify CIFS share acl permission
+      na_ontap_cifs_acl:
+        state: present
+        share_name: "{{ item.share }}"
+        user_or_group: "{{ item.user_or_group }}"
+        permission: "{{ permission }}"
+        vserver: "{{ item.vserver }}"
+      with_items:
+        "{{ cifs_share }}"
+      when: cifs_share != None
+
+    
+    

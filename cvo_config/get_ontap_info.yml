@@ -1,0 +1,56 @@
+- hosts: localhost
+  gather_facts: false
+  vars:
+    input: &input
+      hostname:       "{{ netapp_hostname }}"
+      username:       "{{ netapp_username }}"
+      password:       "{{ netapp_password }}"
+      https:          true
+      validate_certs: false
+# root_volume_aggregate currently not supported with REST
+#      use_rest:       Always
+#  vars_prompt:
+#    - name: "netapp_password"
+#      prompt: "Enter your ONTAP admin password"
+  vars_files:
+    - "{{ variables }}"
+    - "{{ vault_variables }}"
+    # Specify variable files with --extra-vars "variables=var_intfasc1.yml, vault_variables=~/ansible/ontap-admin-pass.yml"
+    # - var_intfasc1.yml
+    # - ~/ansible/ontap-admin-pass.yml
+  collections:
+    - netapp.ontap
+  tasks:
+    - name: Get Ontap Info
+      na_ontap_info:
+        state: info
+        gather_subset:
+          - cluster_identity_info
+          - net_interface_info
+          - cluster_image_info
+          - cluster_node_info
+          - aggregate_info
+          - net_port_info
+        <<: *input
+      register: netapp
+
+    - name: Save aggregate details
+      set_fact:
+        Name:      "{{ netapp.ontap_info.aggregate_info[item].aggregate_name }}"
+        Node:      "{{ netapp.ontap_info.aggregate_info[item].nodes.node_name }}"
+        Size:      "{{ netapp.ontap_info.aggregate_info[item].aggr_space_attributes.size_total }}"
+        Used:      "{{ netapp.ontap_info.aggregate_info[item].aggr_space_attributes.size_used }}"
+      with_items:
+        "{{ netapp.ontap_info.aggregate_info }}"
+      when:
+        netapp.ontap_info.aggregate_info[item].aggr_raid_attributes.is_root_aggregate == "false"
+    
+    - name: Print aggregate details
+      debug:
+        msg:
+          - "Name:      {{ Name }}"
+          - "Node:      {{ Node }}"
+          - "Size:      {{ Size }}"
+          - "Used:      {{ Used }}"
+
+    
