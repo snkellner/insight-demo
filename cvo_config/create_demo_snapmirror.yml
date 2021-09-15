@@ -1,0 +1,14 @@
+- hosts: localhost
+  name: Snapmirror Create
+  gather_facts: false
+  vars:
+    ontap: &ontap
+      hostname:       "{{ netapp_hostname }}"
+      username:       "{{ netapp_username }}"
+      password:       "{{ netapp_password }}"
+      https:          true
+      validate_certs: false
+  vars_files:
+    - var_demo.yml
+  roles:
+    - na_ontap_snapmirror_create
