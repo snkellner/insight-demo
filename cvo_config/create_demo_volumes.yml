@@ -54,19 +54,20 @@
         "{{ nas }}"
     - name: Create DNS on primary SVM
       na_ontap_dns:
-        state:                 present
-        vserver:               "{{ src_vserver }}"
-        domains:               "{{ ad_domain }}"
-        nameservers:           "{{ nameserver }}"
+        state: present
+        vserver: "{{ src_vserver }}"
+        domains: "{{ ad_domain }}"
+        nameservers: "{{ nameserver }}"
         <<: *ontap
     - name: Create CIFS server
       na_ontap_cifs_server:
-        state:                 present
-        name:                  "{{ src_vserver }}"
-        vserver:               "{{ src_vserver }}"
-        domain:                "{{ ad_domain }}"
-        admin_user_name:       "{{ ad_user }}"
-        admin_password:        "{{ netapp_password }}"
+        state: present
+        name: "{{ src_vserver }}"
+        vserver: "{{ src_vserver }}"
+        service_state: started
+        domain: "{{ ad_domain }}"
+        admin_user_name: "{{ ad_user }}"
+        admin_password: "{{ netapp_password }}"
         <<: *ontap
     - name: Create Share
       na_ontap_cifs:
