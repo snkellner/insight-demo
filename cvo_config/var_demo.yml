@@ -1,18 +1,18 @@
-netapp_hostname: "192.168.0.101"
+netapp_hostname: "10.221.4.47"
 netapp_username: "admin"
 netapp_password: "Netapp1!"
-src_ontap: 172.32.0.182
-src_name: vsim
-src_lif: 172.32.0.187
-src_vserver: Marketing
-src_volume: Marketing_Presentation
-dst_ontap: 172.32.0.192
-dst_name: cvo
-dst_lif: 172.32.0.194
-dst_aggr: aggr1
-dst_vserver: backup_vserver
+src_ontap: "{{ netapp_hostname }}"
+src_name: skdemo01
+src_lif: 10.221.4.107
+src_vserver: svm_skdemo01
+src_volume: "{{ nas.0.name }}"
+dst_ontap: 10.221.4.57
+dst_name: skdemo02
+dst_lif: 10.221.4.107
+dst_aggr: "{{ nas.0.aggr }}"
+dst_vserver: svm_skdemo02
 username: "{{ netapp_username }}"
 password: "{{ netapp_password }}"
 nas:
-  - { vserver: svm1, name: vol_demo_nfs01, aggr: aggr1, size: 10, percent_snapshot_space: 10, snapshot_policy: none, protocol: nfs, client: 0.0.0.0/0, ro: sys, rw: sys, su: sys }
-  - { vserver: svm1, name: vol_demo_cifs01, aggr: aggr1, size: 10, percent_snapshot_space: 10, snapshot_policy: none, share: demo01 }
+  - { vserver: "{{ src_vserver }}", name: vol_demo_nfs01, aggr: aggr1, size: 10, percent_snapshot_space: 10, snapshot_policy: none, protocol: nfs, client: 0.0.0.0/0, ro: sys, rw: sys, su: sys }
+  - { vserver: "{{ src_vserver }}", name: vol_demo_cifs01, aggr: aggr1, size: 10, percent_snapshot_space: 10, snapshot_policy: none, protocol: cifs, share: demo01 }
