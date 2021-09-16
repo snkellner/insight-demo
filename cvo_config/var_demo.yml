@@ -1,6 +1,7 @@
 netapp_hostname: "10.221.4.47"
 netapp_username: "admin"
 netapp_password: "Netapp1!"
+nameserver: 192.168.0.253
 ad_domain: "demo.netapp.com"
 ad_user: "Administrator@demo.netapp.com"
 src_ontap: "{{ netapp_hostname }}"

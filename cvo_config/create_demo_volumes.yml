@@ -52,6 +52,13 @@
         <<: *ontap
       with_items:
         "{{ nas }}"
+    - name: Create DNS on primary SVM
+      na_ontap_dns:
+        state:                 present
+        vserver:               "{{ src_vserver }}"
+        domains:               "{{ ad_domain }}"
+        nameservers:           "{{ nameserver }}"
+        <<: *ontap
     - name: Create CIFS server
       na_ontap_cifs_server:
         state:                 present
