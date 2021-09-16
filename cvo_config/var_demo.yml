@@ -9,9 +9,9 @@ src_name: skdemo01
 src_lif: 10.221.4.107
 src_vserver: svm_skdemo01
 src_volume: "{{ nas.0.name }}"
-dst_ontap: 10.221.4.57
+dst_ontap: 10.221.4.223
 dst_name: skdemo02
-dst_lif: 10.221.4.107
+dst_lif: 10.221.4.68
 dst_aggr: "{{ nas.0.aggr }}"
 dst_vserver: svm_skdemo02
 username: "{{ netapp_username }}"
