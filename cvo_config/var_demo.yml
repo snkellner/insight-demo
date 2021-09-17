@@ -1,19 +1,19 @@
-netapp_hostname: "10.221.4.47"
+netapp_hostname: "10.221.4.31"
 netapp_username: "admin"
 netapp_password: "Netapp1!"
 nameserver: 192.168.0.253
 ad_domain: "demo.netapp.com"
 ad_user: "Administrator@demo.netapp.com"
 src_ontap: "{{ netapp_hostname }}"
-src_name: skdemo01
-src_lif: 10.221.4.107
-src_vserver: svm_skdemo01
+src_name: InsightCVOAWSsrc
+src_lif: 10.221.4.218
+src_vserver: "svm_{{ src_name }}"
 src_volume: "{{ nas.0.name }}"
-dst_ontap: 10.221.4.223
-dst_name: skdemo02
-dst_lif: 10.221.4.68
+dst_ontap: 10.221.4.153
+dst_name: InsightCVOAWSdst
+dst_lif: 10.221.4.194
 dst_aggr: "{{ nas.0.aggr }}"
-dst_vserver: svm_skdemo02
+dst_vserver: "svm_{{ dst_name }}"
 username: "{{ netapp_username }}"
 password: "{{ netapp_password }}"
 nas:
