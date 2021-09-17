@@ -62,7 +62,7 @@
     - name: Create CIFS server
       na_ontap_cifs_server:
         state: present
-        name: "{{ src_vserver }}"
+        name: "{{ ad_name }}"
         vserver: "{{ src_vserver }}"
         service_state: started
         domain: "{{ ad_domain }}"
