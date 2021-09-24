@@ -1,5 +1,5 @@
 # cluster management and credentials to access the instances
-netapp_hostname: "10.221.4.31"
+netapp_hostname: "10.221.2.89"
 netapp_username: "admin"
 netapp_password: "Netapp1!"
 
@@ -17,11 +17,11 @@ nas:
 # Variables to create snapmirror
 src_ontap: "{{ netapp_hostname }}"
 src_name: InsightCVOAWSsrc
-src_lif: 10.221.4.218
+src_lif: 10.221.2.132
 src_vserver: "svm_{{ src_name }}"
 src_volume: "{{ nas.0.name }}"
-dst_ontap: 10.221.4.153
+dst_ontap: 10.221.2.159
 dst_name: InsightCVOAWSdst
-dst_lif: 10.221.4.194
+dst_lif: 10.221.2.139
 dst_aggr: "{{ nas.0.aggr }}"
 dst_vserver: "svm_{{ dst_name }}"
