@@ -1,6 +1,6 @@
 # Cloud Manager Refresh Token
 variable "refresh_token" {
-  default = "BJGL372evyr40m2icT8M4V_RGmpU_Y4ghDANSmFdHId8U"
+  default = "<<TOKEN>>"
 }
 
 # Source IP Ranges
